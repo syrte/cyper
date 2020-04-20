@@ -160,21 +160,21 @@ def _suppress_output(quiet=True):
                       errs.decode('utf8'), sep='\n', file=sys.stderr)
 
 
-def _update_flag(code, args, smart=True):
+def _update_flag(code, args, auto_flag=True):
     """Update compiler options for numpy and openmp.
     Helper function for inline.
     """
     numpy = args.pop('numpy', None)
     openmp = args.pop('openmp', None)
 
-    if numpy is None and smart:
+    if numpy is None and auto_flag:
         reg_numpy = re.compile(r"""
             ^\s* cimport \s+ numpy |
             ^\s* from \s+ numpy \s+ cimport
             """, re.M | re.X)
         numpy = reg_numpy.search(code)
 
-    if openmp is None and smart:
+    if openmp is None and auto_flag:
         reg_openmp = re.compile(r"""
             ^\s* c?import \s+cython\.parallel |
             ^\s* from \s+ cython\.parallel \s+ c?import |
@@ -220,7 +220,7 @@ def cython_build(name, file=None, force=False, quiet=True, cythonize_args={},
 
 
 def inline(code, export=None, name=None, force=False,
-           quiet=True, smart=True, fast_indexing=False,
+           quiet=True, auto_flag=True, fast_indexing=False,
            directives={}, cimport_dirs=[], cythonize_args={},
            lib_dir=os.path.join(get_cython_cache_dir(), 'inline/lib'),
            tmp_dir=os.path.join(get_cython_cache_dir(), 'inline/tmp'),
@@ -248,8 +248,8 @@ def inline(code, export=None, name=None, force=False,
         Force the compilation of a new module, even if the source
         has been previously compiled.
     quiet : bool
-        Suppress compiler's outputs/warnings.
-    smart : bool
+        Suppress compiler's outputs/warnings unless the compiling failed.
+    auto_flag : bool
         If True, numpy and openmp will be auto-detected from the code.
     fast_indexing : bool
         If True, `boundscheck` and `wraparound` are turned off
@@ -425,7 +425,7 @@ def inline(code, export=None, name=None, force=False,
     # if existing extra depends, let distutils to decide whether rebuild or not
     if not os.path.isfile(ext_file) or extra_depends:
         with set_env(**environ):
-            _update_flag(code, extension_args, smart=smart)
+            _update_flag(code, extension_args, auto_flag=auto_flag)
             cython_build(ext_name, file=pyx_file, force=force,
                          quiet=quiet, cythonize_args=cythonize_args,
                          lib_dir=lib_dir, tmp_dir=tmp_dir,
