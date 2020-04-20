@@ -1,6 +1,7 @@
 # cyper
 
 **Cy**thon **per**formed inline: compile your Cython snippets on the fly.
+
 It is originally inspired by the IPython Cython magic command.
 
 
@@ -30,7 +31,7 @@ Get better performance (at your own risk) with arrays:
     cyper.inline(code, fast_indexing=True)
 ```
 
-Example of using gsl library, assuming gsl is installed at /opt/gsl/
+Example of using external gsl library, assuming gsl is installed at `/opt/gsl/`
 ```python
     code = r'''
     cdef extern from "gsl/gsl_math.h":
