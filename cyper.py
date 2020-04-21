@@ -348,9 +348,8 @@ def inline(code, export=None, name=None, force=False,
     Try setting `cimport_dirs=sys.path` if Cython can not find installed
     cimport module.
 
-
-    References
-    ----------
+    See also
+    --------
     https://github.com/cython/cython/blob/master/Cython/Build/IpythonMagic.py
     https://github.com/cython/cython/blob/master/Cython/Build/Inline.py
     """
@@ -408,7 +407,7 @@ def inline(code, export=None, name=None, force=False,
     #     code, '__cyper_signature__', signature)
 
     # module name and path
-    pyx_name = "__cyper__{}".format(signature)
+    pyx_name = "_cyper_{}".format(signature)
     ext_name = pyx_name if name is None else name
 
     pyx_file = os.path.join(tmp_dir, pyx_name + '.pyx')  # path of source file
