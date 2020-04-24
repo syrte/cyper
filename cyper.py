@@ -124,7 +124,12 @@ def set_env(**environ):
     try:
         if environ:
             old_environ = dict(os.environ)
-            os.environ.update(environ)
+            # os.environ.update(environ)
+            for key, value in environ.items():
+                if value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = value
         yield
     finally:
         if environ:
