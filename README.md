@@ -94,12 +94,12 @@ It is aiming to provide a flexible alternative to the IPython Cython magic comma
   
   The cython `directives` and distutils `extension_args` can also be set in a directive comment at the top of the code snippet, e.g.,
   ```python
-  code = r"""
+  code = r'''
   # cython: boundscheck=False, wraparound=False, cdivision=True
   # distutils: extra_compile_args = -fopenmp
   # distutils: extra_link_args = -fopenmp
   ...<code>...
-  """
+  '''
   cyper.inline(code)
   ```
 
@@ -120,3 +120,13 @@ It is aiming to provide a flexible alternative to the IPython Cython magic comma
 ## Installation
 
 - Dependencies: Cython
+
+- Installation:
+  ```bash
+  pip install cyper
+  ```
+
+## License
+
+Cyper is licensed under the [MIT License](https://github.com/syrte/cyper/blob/master/LICENSE)
+

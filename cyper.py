@@ -1,9 +1,18 @@
 """
-cyper.inline can easily compile your cython snippets on the fly,
+cyper.inline can easily compile and run your Cython snippets on the fly,
 without writing the tedious setup files or makefile.
-It is a standalone package originally inspired by IPython Cython magic.
+It is a standalone package originally inspired by the IPython Cython magic command.
+
+Author: 
+    Syrtis Major (styr.py@gmail.com)
+
 """
+
 from __future__ import absolute_import, print_function
+
+__all__ = ['inline']
+__version__ = '1.0'
+__author__ = 'Syrtis Major'
 
 import re
 import io
@@ -19,9 +28,6 @@ from Cython.Utils import captured_fd, get_cython_cache_dir
 from Cython.Build import cythonize
 from Cython.Build.Inline import to_unicode, strip_common_indent
 from Cython.Build.Inline import _get_build_extension
-
-
-__all__ = ['inline']
 
 
 def _append_args(kwargs, key, value):
@@ -104,14 +110,13 @@ def load_dynamic(name, path):
 
 @contextlib.contextmanager
 def set_env(**environ):
-    """
-    Temporarily set the environment variables.
+    """Temporarily set the environment variables.
     source: http://stackoverflow.com/a/34333710/
 
     Examples
     --------
     >>> with set_env(PLUGINS_DIR=u'plugins'):
-    ...   "PLUGINS_DIR" in os.environ
+    ...   print("PLUGINS_DIR" in os.environ)
     True
     >>> "PLUGINS_DIR" in os.environ
     False
@@ -286,30 +291,39 @@ def inline(code, export=None, name=None, force=False,
 
     Examples
     --------
-    Basic usage:
+    Basic usage
+        import cyper
         code = r'''
         def func(x):
             return 2.0 * x
         '''
         pyx = cyper.inline(code)
         pyx.func(1)
+        # 2.0
     Raw string is recommended to avoid breaking escape character.
 
-    Export the names from compiled module:
+    It is convenient (though usually not encouraged) to export the variables from compiled module to the current namespace
         cyper.inline(code, globals())
         func(1)
 
-    Get better performance (at your own risk) with arrays:
-        cyper.inline(code, fast_indexing=True)
-
-    Example of using gsl library, assuming gsl is installed at /opt/gsl/
+    Example of using Numpy array and external gsl library, assuming gsl installed at `/opt/gsl/`
         code = r'''
+        import numpy as np
+
         cdef extern from "gsl/gsl_math.h":
             double gsl_pow_int (double x, int n)
 
         def pow(double x, int n):
             y = gsl_pow_int(x, n)
             return y
+
+        def pow_array(double[:] x, int n):
+            cdef:
+                int i, m=len(x)
+                double[:] y=np.empty(m, dtype='f8')
+            for i in range(m):
+                y[i] = gsl_pow_int(x[i], n)
+            return y.base
         '''
         pyx = cyper.inline(
             code,
@@ -317,36 +331,50 @@ def inline(code, export=None, name=None, force=False,
             library_dirs=['/opt/gsl/lib'],
             libraries=['gsl', 'gslcblas']
         )
-        pyx.pow(2, 6)
 
-    Compile OpenMP codes with gcc:
-        cyper.inline(openmpcode, openmp='-fopenmp')
+        pyx.pow(2, 6)
+        # 64.0
+
+        import numpy as np
+        pyx.pow_array(np.arange(5, dtype='f8'), 2)
+        # array([ 0.,  1.,  4.,  9., 16.])
+
+    Get better performance (at your own risk) with arrays
+        cyper.inline(code, fast_indexing=True)
         # or equivalently
+        cyper.inline(code, directives=dict(boundscheck=False, wraparound=False))
+
+    Advanced usage
+
+    Set the compiler options, e.g., compiling OpenMP codes with gcc
         cyper.inline(openmpcode,
-                    extra_compile_args=['-fopenmp'],
-                    extra_link_args=['-fopenmp'],
-                    )
+                     extra_compile_args=['-fopenmp'],
+                     extra_link_args=['-fopenmp'],
+                     )
         # use '-openmp' or '-qopenmp' (>=15.0) for Intel
         # use '/openmp' for Microsoft Visual C++ Compiler
         # use '-fopenmp=libomp' for Clang
+    Or equivalently write this for short
+        cyper.inline(openmpcode, openmp='-fopenmp')
 
-    The cython `directives` and distutils `extension_args` can also be
-    set in a directive comment at the top of the code snippet, e.g.:
+    The cython `directives` and distutils `extension_args` can also be set in a directive comment at the top of the code snippet, e.g.,
+        code = r'''
         # cython: boundscheck=False, wraparound=False, cdivision=True
         # distutils: extra_compile_args = -fopenmp
         # distutils: extra_link_args = -fopenmp
-        ...code...
+        ...<code>...
+        '''
+        cyper.inline(code)
 
-    Use icc to compile:
+    Set environment variables, e.g., using icc to compile
         cyper.inline(code, environ={'CC':'icc', 'LDSHARED':'icc -shared'})
     See https://software.intel.com/en-us/articles/thread-parallelism-in-cython
 
-    Set directory for searching cimport (.pxd file):
+    Set directory for searching cimport (.pxd file)
         cyper.inline(code, cimport_dirs=[custom_path]})
         # or equivalently
         cyper.inline(code, cythonize_args={'include_path': [custom_path]})
-    Try setting `cimport_dirs=sys.path` if Cython can not find installed
-    cimport module.
+    Try setting `cimport_dirs=sys.path` if Cython can not find the installed cimport modules.
 
     See also
     --------
