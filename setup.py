@@ -14,6 +14,7 @@ setup(
     author='Syrtis Major',
     author_email='styr.py@gmail.com',
     py_modules=['cyper'],
+    install_requires=['Cython'],
     license='MIT License',
     classifiers=[
         'Development Status :: 4 - Beta',
