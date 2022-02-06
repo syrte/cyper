@@ -17,10 +17,12 @@ It is aiming to provide a flexible alternative to the IPython Cython magic comma
 - Basic usage
   ```python
   import cyper
+  
   code = r'''
   def func(x):
       return 2.0 * x
   '''
+  
   pyx = cyper.inline(code)
   pyx.func(1)
   # 2.0
@@ -53,6 +55,7 @@ It is aiming to provide a flexible alternative to the IPython Cython magic comma
           y[i] = gsl_pow_int(x[i], n)
       return y.base
   '''
+  
   pyx = cyper.inline(
       code,
       include_dirs=['/opt/gsl/include/'],
@@ -71,7 +74,7 @@ It is aiming to provide a flexible alternative to the IPython Cython magic comma
 - Get better performance (at your own risk) with arrays
   ```python
   cyper.inline(code, fast_indexing=True)
-  # or equivalently
+  # it is equivalent to
   cyper.inline(code, directives=dict(boundscheck=False, wraparound=False))
   ```
 
